@@ -1,6 +1,16 @@
 name: 'Hello World'
 description: 'Greet someone and record the time'
 inputs:
+  configPath:
+    description: Location of configuration file
+    required: true
+  outputPath:
+    description: Location of output file
+    required: true
+    default: 'README.md'
+  beforeTOC:
+    description: A markdown string between the title and the TOC.
+    required: false
   who-to-greet:  # id of input
     description: 'Who to greet'
     required: true

@@ -29,8 +29,9 @@ async function main() {
     const configPath = core.getInput("configPath");
     const bookTree = await summaryToUrlTree({
       url: "dummyURL",
-      localPath: configPath,
-        // "./source/00-index.md",
+      localPath: 
+        // configPath,
+        "./source/00-index.md",
         // "/Users/matthewcaseres/Documents/GitHub/AWS-Notes/source/00-index.md",
       userFunction: headersFunction,
     });
@@ -49,7 +50,6 @@ async function main() {
 ${section.map((header) => `* [${header.title}](#${header.slug})`).join("\n")}
 </details>` + "\n\n").join("")
 
-    // writeFileSync("fu.md", fuu);
     const outputPath = core.getInput("outputPath");
     const beforeTOC = core.getInput("beforeTOC");
     writeFileSync(outputPath, title + TOC + "\n" + allFiles.join("\r\n"));

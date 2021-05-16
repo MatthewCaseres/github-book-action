@@ -29,7 +29,7 @@ async function main() {
     const bookTree = await summaryToUrlTree({
       url: "dummyURL",
       localPath:
-        "/github/workspace/source/00-index.md",
+        "/source/00-index.md",
       userFunction: headersFunction,
     });
     const nameToGreet = core.getInput('who-to-greet');

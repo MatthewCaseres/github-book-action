@@ -1,10 +1,11 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
-const { summaryToUrlTree, UserFunction } = require("github-books");
+const { summaryToUrlTree } = require("github-books");
 const GithubSlugger = require("github-slugger");
-const { writeFile, writeFileSync } = require("fs");
-const { promisify } = require("util");
-const writeFileAsync = promisify(writeFile);
+const markdown = require('remark-stringify');
+const unified = require('unified')
+const { writeFileSync } = require("fs");
+const visit = require('unist-util-visit');
 
 const slugger = new GithubSlugger();
 let allHeaders = [];
@@ -19,8 +20,12 @@ const headersFunction = ({ mdast, file }) => {
       headers.push({ depth, title, slug });
     }
   }
+  visit(mdast, 'image', (node) => {
+    node.url = `./source/${node.url.slice(2)}`
+  })
+  
   allHeaders = [...allHeaders, ...headers];
-  allFiles = [...allFiles, file];
+  allFiles = [...allFiles, unified().use(markdown).stringify(mdast)];
 };
 
 main().catch((error) => core.setFailed(error.message));
@@ -29,8 +34,9 @@ async function main() {
     const configPath = core.getInput("configPath");
     const bookTree = await summaryToUrlTree({
       url: "dummyURL",
-      localPath: configPath,
-        // "./source/00-index.md",
+      localPath: 
+      // configPath,
+        "./source/00-index.md",
         // "/Users/matthewcaseres/Documents/GitHub/AWS-Notes/source/00-index.md",
       userFunction: headersFunction,
     });
@@ -43,25 +49,15 @@ async function main() {
         beginIndex = i;
       }
     }
-    const TOC = slicedHeaders.map(section => `<details>
-  <summary>${section[0].title}</summary>
+    const TOC = slicedHeaders.map((section) => `<details>
+  <summary><a href="#${section[0].slug}">${section[0].title}</a></summary>
     
-${section.map((header) => `* [${header.title}](#${header.slug})`).join("\n")}
+${section.slice(1).map((header) => `* [${header.title}](#${header.slug})`).join("\n")}
 </details>` + "\n\n").join("")
 
-    // writeFileSync("fu.md", fuu);
     const outputPath = core.getInput("outputPath");
     const beforeTOC = core.getInput("beforeTOC");
-    writeFileSync(outputPath, title + TOC + "\n" + allFiles.join("\r\n"));
-
-    const nameToGreet = core.getInput("who-to-greet");
-    console.log(`Hello ${nameToGreet}!`);
-    const time = new Date().toTimeString();
-    core.setOutput("time", time);
-    await writeFileAsync("lol.json", JSON.stringify(bookTree));
-    // Get the JSON webhook payload for the event that triggered the workflow
-    const payload = JSON.stringify(github.context.payload, undefined, 2);
-    console.log(`The event payload: ${payload}`);
+    writeFileSync('README.md', title + TOC + "\n" + allFiles.join("\r\n"));
   } catch (error) {
     core.setFailed(error.message);
   }

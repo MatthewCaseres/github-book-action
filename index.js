@@ -1,6 +1,6 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const {} = require('github-books')
+const {summaryToUrlTree, UserFunction} = require('github-books')
 const GithubSlugger = require('github-slugger')
 const {writeFile} = require('fs');
 const {promisify} = require('util');
@@ -36,7 +36,7 @@ async function main() {
     console.log(`Hello ${nameToGreet}!`);
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
-    await writeFileAsync('lol.txt', JSON.stringify(bookTree))
+    await writeFileAsync('lol.json', JSON.stringify(bookTree))
     // Get the JSON webhook payload for the event that triggered the workflow
     const payload = JSON.stringify(github.context.payload, undefined, 2)
     console.log(`The event payload: ${payload}`);

@@ -27,8 +27,8 @@ Tutorial:
       button the problem will be completed.
     solution: You can always click the "Solution" button to view the correct answer.
   - answers:
-      - "Yes"
-      - "No"
+      - 'Yes'
+      - 'No'
     correct_idx: 0
     id: 33694418-b93b-4c47-8f0c-117608f58e8b
     prompt: >-

@@ -1,3 +1,5 @@
+this software is used to concatenate markdown files into a single README file. As such, this readme is just the result of whatever testing I've been doing.
+
 # Tutorial
 
 ## Video Tutorial

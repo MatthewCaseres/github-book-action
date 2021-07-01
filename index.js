@@ -32,7 +32,7 @@ const headersFunction = ({ mdast, treeNode }) => {
       const mcqJSON = yaml.load(node.value, { schema: yaml.JSON_SCHEMA });
       node.type = "html";
       node.value = getMCQMarkdown(mcqJSON);
-      allProblems[route] = [...(allProblems[route] ?? []), mcqJSON];
+      allProblems[route] = [...(allProblems[route] || []), mcqJSON];
     }
   });
   allHeaders = [...allHeaders, ...headers];

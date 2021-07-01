@@ -2,15 +2,19 @@ const core = require("@actions/core");
 const github = require("@actions/github");
 const { summaryToUrlTree } = require("github-books");
 const GithubSlugger = require("github-slugger");
-const markdown = require('remark-stringify');
-const unified = require('unified')
+const markdown = require("remark-stringify");
+const unified = require("unified");
 const { writeFileSync } = require("fs");
-const visit = require('unist-util-visit');
+const visit = require("unist-util-visit");
+const yaml = require("js-yaml");
 
 const slugger = new GithubSlugger();
 let allHeaders = [];
 let allFiles = [];
-const headersFunction = ({ mdast, file }) => {
+let allProblems = {};
+// Create table of contents AND concatenate files
+const headersFunction = ({ mdast, treeNode }) => {
+  const route = treeNode.title;
   const headers = [];
   for (let node of mdast.children) {
     if (node.type === "heading" && (node.depth === 1 || node.depth === 2)) {
@@ -20,10 +24,17 @@ const headersFunction = ({ mdast, file }) => {
       headers.push({ depth, title, slug });
     }
   }
-  visit(mdast, 'image', (node) => {
-    node.url = `./source/${node.url.slice(2)}`
-  })
-  
+  visit(mdast, "image", (node) => {
+    node.url = `./source/${node.url.slice(2)}`;
+  });
+  visit(mdast, "code", (node) => {
+    if (node.lang === "mcq") {
+      const mcqJSON = yaml.load(node.value, { schema: yaml.JSON_SCHEMA });
+      node.type = "html";
+      node.value = getMCQMarkdown(mcqJSON);
+      allProblems[route] = [...(allProblems[route] ?? []), mcqJSON];
+    }
+  });
   allHeaders = [...allHeaders, ...headers];
   allFiles = [...allFiles, unified().use(markdown).stringify(mdast)];
 };
@@ -31,13 +42,9 @@ const headersFunction = ({ mdast, file }) => {
 main().catch((error) => core.setFailed(error.message));
 async function main() {
   try {
-    const configPath = core.getInput("configPath");
     const bookTree = await summaryToUrlTree({
       url: "dummyURL",
-      localPath: 
-      // configPath,
-        "./source/00-index.md",
-        // "/Users/matthewcaseres/Documents/GitHub/AWS-Notes/source/00-index.md",
+      localPath: "./source/00-index.md",
       userFunction: headersFunction,
     });
     const title = `# ${bookTree.title} \n\n`;
@@ -49,16 +56,53 @@ async function main() {
         beginIndex = i;
       }
     }
-    const TOC = slicedHeaders.map((section) => `<details>
+    const TOC = slicedHeaders
+      .map(
+        (section) =>
+          `<details>
   <summary><a href="#${section[0].slug}">${section[0].title}</a></summary>
     
-${section.slice(1).map((header) => `* [${header.title}](#${header.slug})`).join("\n")}
-</details>` + "\n\n").join("")
+${section
+  .slice(1)
+  .map((header) => `* [${header.title}](#${header.slug})`)
+  .join("\n")}
+</details>` + "\n\n"
+      )
+      .join("");
 
-    const outputPath = core.getInput("outputPath");
-    const beforeTOC = core.getInput("beforeTOC");
-    writeFileSync('README.md', title + TOC + "\n" + allFiles.join("\r\n"));
+    writeFileSync("README.md", title + TOC + "\n" + allFiles.join("\r\n"));
+    writeFileSync("problems.json", JSON.stringify(allProblems));
   } catch (error) {
     core.setFailed(error.message);
   }
+}
+
+function getCheckedAnswers(correct_idx, answers, solutionVisible) {
+  if (typeof correct_idx === "number") {
+    correct_idx = [correct_idx];
+  }
+  // If an answer is correct and solution is visible, fill it in
+  return answers
+    .map(
+      (answer, i) =>
+        `* [${
+          correct_idx.includes(i) && solutionVisible ? "X" : " "
+        }] ${answer}`
+    )
+    .join("\n");
+}
+function getMCQMarkdown({ prompt, correct_idx, answers, solution }) {
+  return (
+    "\n<hr /> \n\n" +
+    prompt +
+    "\n\n" +
+    getCheckedAnswers(correct_idx, answers, false) +
+    "\n\n" +
+    "<details><summary><b>solution</b></summary>" +
+    "\n\n" +
+    getCheckedAnswers(correct_idx, answers, true) +
+    "\n\n" +
+    solution +
+    "\n\n</details><hr /> \n\n"
+  );
 }

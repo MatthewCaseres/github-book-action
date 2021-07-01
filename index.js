@@ -34,6 +34,18 @@ const headersFunction = ({ mdast, treeNode }) => {
       allProblems[route] = [...(allProblems[route] || []), mcqJSON];
     }
   });
+  visit(mdast, "link", (node) => {
+    if (node.url.startsWith("https://www.youtube.com/watch?v=")) {
+      node.children = [
+        {
+          type: "image",
+          title: null,
+          url: "./source/images/YouTube.svg",
+          alt: "YouTube Logo",
+        },
+      ];
+    }
+  });
   allHeaders = [...allHeaders, ...headers];
   allFiles = [...allFiles, unified().use(markdown).stringify(mdast)];
 };

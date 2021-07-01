@@ -1,5 +1,4 @@
 const core = require("@actions/core");
-const github = require("@actions/github");
 const { summaryToUrlTree } = require("github-books");
 const GithubSlugger = require("github-slugger");
 const markdown = require("remark-stringify");

@@ -1,23 +1,12 @@
-name: 'Hello World'
-description: 'Greet someone and record the time'
+name: "create README"
+description: "Concatenate files and convert YAML blocks to HTML representation."
 inputs:
-  configPath:
-    description: Location of configuration file
-    required: true
-  outputPath:
-    description: Location of output file
-    required: true
-    default: 'README.md'
   beforeTOC:
     description: A markdown string between the title and the TOC.
     required: false
-  who-to-greet:  # id of input
-    description: 'Who to greet'
-    required: true
-    default: 'World'
 outputs:
   time: # id of output
-    description: 'The time we greeted you'
+    description: "The time we greeted you"
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: "node12"
+  main: "index.js"

@@ -71,7 +71,7 @@ ${section
       .join("");
 
     writeFileSync("README.md", title + TOC + "\n" + allFiles.join("\r\n"));
-    writeFileSync("problems.json", JSON.stringify(allProblems));
+    writeFileSync("problems.yaml", yaml.dump(allProblems));
   } catch (error) {
     core.setFailed(error.message);
   }
